@@ -1,0 +1,155 @@
+<html>
+<!--Made heavily based off the game tutorial by http://arstechnica.com/business/2014/04/building-a-gesture-controlled-web-game-with-leap-motion/2/-->
+  <head>
+    <title>Cat-tastic</title>
+    <audio id="bgsound" src="assets/Audio/85046_newgrounds_parago.mp3" loop="loop"></audio>
+    <script src="assets/pixi.dev.js" type="text/javascript"></script>
+    <script src="http://js.leapmotion.com/leap-0.6.2.js"></script>
+
+    <style type="text/css">
+      #game {
+        margin-left: auto;
+        margin-right: auto;
+
+        width: 750px;
+        height: 500px;
+      }
+      #restart {
+        margin-left: 600px;
+        margin-right: auto;
+
+        width: 750px;
+        height: 500px;
+      }
+    </style>
+
+  </head>
+  <body>
+    <div id="game"></div>
+    <div id="restart">
+      <a href = "index.html"><img src="assets/Dog01_100.png"></a>
+      <a href = "index.html"><img src="assets/Dog02_100.png"></a>
+      <a href = "index.html"><img src="assets/Dog03_100.png"></a>
+      <p style="padding-left:5em"><font color="pink"><br>Click a dog to start over!</br></font></p>
+    </div>
+    <div id = "stopwatch"></div>
+  </body>
+
+  <script type="text/javascript">
+    
+    var stageWidth = 750;
+    var stageHeight = 500;
+
+    // Create the stage and the rendering engine
+    var stage = new PIXI.Stage(0xFFFFFF);
+    var render = new PIXI.autoDetectRenderer(stageWidth, stageHeight);
+
+    document.getElementById("game").appendChild(render.view);
+
+    // Create the moving backdrop
+    var skybg = PIXI.Texture.fromImage("assets/bg_noclouds.png");
+    var sky = new PIXI.TilingSprite(skybg, stageWidth, stageHeight);
+    stage.addChild(sky);
+
+    // Create the cat sprite
+    var cat = PIXI.Sprite.fromImage("assets/Cat02_100.png");
+    stage.addChild(cat);
+
+    var collided = false;
+
+    // Set the initial value on the timer
+    var timer = window.performance.now();
+
+    // Set up the Leap Motion controller loop
+    var options = {frameEventName: "animationFrame"};
+    var controller = Leap.loop(options, function(frame) {
+
+      var now = window.performance.now();
+      var delta = Math.min(now - timer, 100);
+      timer = now;
+
+      // Make the starfield background move
+      sky.tilePosition.x -= 0.2 * delta;
+
+      // Check to see if the "Game Over" condition is active
+      if (collided) {
+        // Create and display the "Game Over" caption
+        var caption = new PIXI.Text("Game Over", {
+          font: "50px Times New Roman", fill: "pink"
+        });
+
+        caption.x = stageWidth / 2 - caption.width / 2;
+        caption.y = stageHeight / 2;
+
+        stage.addChild(caption);
+        document.getElementById("bgsound").pause();
+        // Render the frame and call return so that the rest of
+        // the elements of the scene remain static
+        return render.render(stage);
+      }
+
+      // Iterate over bad guys on stage
+      sky.children.forEach(function(child) {
+        child.x -= 0.2 * delta;
+
+        if (child.getBounds().contains(cat.x, cat.y))
+          collided = true;
+
+        // Remove bad guys that have gone off the edge of the screen
+        if (child.x < -child.width)
+          sky.removeChild(child);
+      });
+
+      // Find the last bad guy that was most recently added to the stage
+      var last = sky.children[sky.children.length - 1];
+
+      // Add a new bad guy if there are no bad guys on the screen 
+      if (sky.children.length == 0 || last.x < (stageWidth - 250)) {
+        var cl1 = PIXI.Sprite.fromImage("assets/Cloud_01.png");
+        cl1.y = Math.floor((Math.random() * (stageHeight - 100)));
+        cl1.x = stageWidth;
+        sky.addChild(cl1);
+
+        var cl2 = PIXI.Sprite.fromImage("assets/Cloud_02.png");
+        cl2.y = Math.floor((Math.random() * (stageHeight - 150)));
+        cl2.x = stageWidth;
+        sky.addChild(cl2);
+
+        /*var cl3 = PIXI.Sprite.fromImage("assets/Cloud_03.png");
+        cl3.y = Math.floor((Math.random() * (stageHeight - 200)));
+        cl3.x = stageWidth;
+        sky.addChild(cl3);*/
+
+        /*var d1 = PIXI.Sprite.fromImage("assets/Dog01_100.png");
+        d1.y = Math.floor((Math.random() * (stageWidth - 100)));
+        d1.x = stageWidth - 75;
+        space.addChild(d1);*/
+
+        var d2 = PIXI.Sprite.fromImage("assets/Dog02_100.png");
+        d2.y = Math.floor((Math.random() * (stageHeight - 100)));
+        d2.x = stageWidth - 50;
+        sky.addChild(d2);
+
+        /*var d3 = PIXI.Sprite.fromImage("assets/Dog03_100.png");
+        d3.y = Math.floor((Math.random() * (stageWidth - 100)));
+        d3.x = stageWidth - 90;
+        space.addChild(d3);*/
+      }
+
+      if (frame.pointables.length > 0) {
+        // Get the normalized finger position
+        var pos = frame.pointables[0].stabilizedTipPosition;
+        var normPos = frame.interactionBox.normalizePoint(pos, true);
+
+        cat.x = stageWidth * normPos[0];
+        cat.y = stageHeight * (1 - normPos[1]);
+      }
+
+      // Render the scene
+      render.render(stage);
+    });
+    window.onload = function() {
+      document.getElementById("bgsound").play();
+    }
+  </script>
+</html>
