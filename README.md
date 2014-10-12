@@ -15,8 +15,8 @@ Images made by Christine Do & Jessica Guo
 Open source audio - I have no legal claim towards ownership of the audio files
 
 Made during HackRU Fall 2014 
-Team:
-Laura Tran
+Team: 
+Laura Tran 
 Chrsitine Do
-Jessica Guo
+Jessica Guo 
 CHristie Cheng
